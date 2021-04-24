@@ -40,3 +40,50 @@ rotuer.post('/register', (req, res) => {
     }
   });
 });
+
+//@route api/users/login
+//@desc user login
+//@access public
+rotuer.post('/login', (req, res) => {
+  const { errors, isValid } = validateLoginInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  const email = req.body.email;
+  const password = req.body.password;
+
+  User.findOne({ email }).then((user) => {
+    if (!user) {
+      return res.status(404).json({ emailnotfound: 'email not found' });
+    }
+
+    bcrypt.compare(password, user.password).then((isMatch) => {
+      if (isMatch) {
+        const payload = {
+          id: user.id,
+          name: user.name,
+        };
+
+        jwt.sign(
+          payload,
+          process.env.secret,
+          { expiresIn: 31556926 },
+          (err, token) => {
+            res.json({
+              success: true,
+              token: 'Bearer ' + token,
+            });
+          }
+        );
+      } else {
+        return res
+          .status(400)
+          .json({ passwordincorrect: 'passwrod incorrect' });
+      }
+    });
+  });
+});
+
+module.export = router;

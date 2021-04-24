@@ -1,6 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv').config();
+const passport = require('passport');
+
+const users = require('./routes/api/users');
 
 //express app
 const app = express();
@@ -18,6 +21,15 @@ mongoose
   })
   .then(() => console.log('mongodb connected'))
   .catch((err) => console.log(err));
+
+//passport middleware
+app.use(passport.initialize());
+
+//passport config
+require('./passport')(passport);
+
+//routes
+app.use('./api/users', users);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`server running on ${port} `));
